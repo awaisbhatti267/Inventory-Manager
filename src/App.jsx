@@ -1,6 +1,6 @@
 import React from 'react';
 import './index.css';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/layout';
@@ -22,7 +22,7 @@ import Privacy from './pages/settings/privacy';
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Login />} />
@@ -45,7 +45,7 @@ const App = () => {
           </Route>
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 
