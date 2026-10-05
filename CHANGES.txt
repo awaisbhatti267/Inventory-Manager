@@ -1,0 +1,125 @@
+====================================================
+  MINI INVENTORY MANAGER — FRONTEND CHANGES LOG
+====================================================
+
+----------------------------------------------------
+SESSION 1 — Initial Setup & Bug Fixes
+----------------------------------------------------
+
+App.jsx
+  - Added missing Login and Signup imports (blank screen fix)
+  - Added Layout wrapper route for authenticated pages
+  - Added ProtectedRoute wrapper
+  - Added nested routes under /settings
+  - Added /add-product route
+
+index.html
+  - Changed title from "mini-inventory" to "Mini Inventory Manager"
+
+src/pages/Auth/login.jsx
+  - Built full login UI (was empty)
+  - Dark theme: bg-[#0d1b2a], card bg-[#112240]
+  - Two-column layout: logo left, form right
+  - Fields: Email, Password with show/hide toggle
+  - Icons from react-icons/fi
+  - Form with onSubmit handler
+  - Saves userId to localStorage on success
+  - Navigates to /home on login
+
+src/pages/Auth/signup.jsx
+  - Built full signup UI (was empty)
+  - Same dark theme and layout as login
+  - Fields: Full Name, Email, Password, Confirm Password
+  - Password confirmation validation
+  - Navigates to / on success
+
+src/components/sidebar.jsx
+  - Fixed invalid HTML: Link wrapped in li tags
+  - Fixed "position-fixed" → "fixed top-0 left-0"
+  - Fixed w-1/5 → w-64
+  - Replaced Link with NavLink for active state
+  - Added FiMenu toggle button in header
+  - Centered brand header with justify-center
+  - Fixed font-size-64px (invalid) → font-bold
+
+src/components/navbar.jsx
+  - Fixed <Header> (invalid JSX) → <header>
+  - Added user avatar, name, chevron icon
+
+src/components/footer.jsx
+  - Built from scratch (was empty)
+  - Fixed position at bottom
+
+src/components/layout.jsx
+  - Created Layout with Sidebar, Navbar, Footer, Outlet
+  - isSettings check to hide Navbar/Footer on /settings/*
+  - Fixed isSettings from === to startsWith()
+
+src/pages/home.jsx
+  - Built dashboard with product grid, Add Product popup
+  - Fetches latest 6 products from backend
+
+src/pages/setting.jsx
+  - Two-column layout with Setting_links + Outlet
+
+src/components/setting_links.jsx
+  - Added missing Link import (was causing crash)
+
+src/pages/settings/change-password.jsx
+  - Full form with current/new/confirm password
+  - Posts to /change-password backend route
+
+src/pages/settings/notifications.jsx
+  - Toggle UI for low stock and out of stock alerts
+
+src/pages/settings/privacy.jsx
+  - Privacy policy content page
+
+----------------------------------------------------
+SESSION 2 — Mobile Responsive
+----------------------------------------------------
+
+src/components/sidebar.jsx
+  - Added mobile top bar (fixed, full width) with
+    brand + hamburger toggle (visible only on mobile)
+  - Sidebar hidden by default on mobile (-translate-x-full)
+  - Slides in when burger clicked (translate-x-0)
+  - sidebar starts at top-12 on mobile (below top bar),
+    top-0 on desktop
+  - Brand header hidden on mobile (shown in top bar instead)
+  - Dark overlay when sidebar open on mobile
+  - Clicking a nav link closes sidebar on mobile
+  - md:translate-x-0 keeps sidebar always visible on desktop
+
+src/components/navbar.jsx
+  - hidden on mobile (md:flex on desktop only)
+  - Mobile branding handled by sidebar top bar instead
+
+src/components/footer.jsx
+  - left-0 on mobile (full width)
+  - md:left-64 on desktop (clears sidebar)
+
+src/components/layout.jsx
+  - pt-12 on mobile (clears fixed top bar)
+  - md:pt-0 on desktop
+  - ml-0 on mobile, md:ml-64 on desktop
+
+src/pages/setting.jsx
+  - flex-col on mobile, md:flex-row on desktop
+  - Settings links panel: w-full on mobile, md:w-48 on desktop
+
+src/pages/Auth/login.jsx
+  - Replaced invalid mx-30 Tailwind class
+  - Stacks logo above form on mobile (flex-col)
+  - Two columns on desktop (lg:flex-row)
+  - Divider hidden on mobile (hidden lg:block)
+
+src/pages/Auth/signup.jsx
+  - Replaced invalid mx-50 Tailwind class
+  - Same responsive layout as login
+
+NOTE: home.jsx, products.jsx, add_products.jsx,
+profile.jsx, change-password.jsx were already using
+sm:/lg: breakpoints and are responsive as-is.
+
+====================================================
