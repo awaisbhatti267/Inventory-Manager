@@ -1,54 +1,92 @@
 import { app, BrowserWindow } from "electron";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import { spawn } from "child_process";
 
-// ESM mein __dirname available nahi hota,
-// isliye manually create kar rahe hain.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let backendProcess = null;
+let logStream = null;
 
 function startBackend() {
-  // Backend app.js
-  const backendPath = path.join(
-    __dirname,
-    "../src/server/app.js"
+  let backendPath;
+  let backendDir;
+
+  // Development vs Installed App
+  if (app.isPackaged) {
+    backendDir = path.join(process.resourcesPath, "server");
+    backendPath = path.join(backendDir, "app.js");
+  } else {
+    backendDir = path.join(__dirname, "../src/server");
+    backendPath = path.join(backendDir, "app.js");
+  }
+
+  // Backend log file
+  const logPath = path.join(
+    app.getPath("userData"),
+    "backend.log"
   );
 
-  // Backend folder
-  // .env bhi isi folder mein hai
-  const backendDir = path.join(
-    __dirname,
-    "../src/server"
+  fs.appendFileSync(
+    logPath,
+    `\n\n========== APP START ==========\n` +
+    `Packaged: ${app.isPackaged}\n` +
+    `Backend directory: ${backendDir}\n` +
+    `Backend path: ${backendPath}\n` +
+    `Backend exists: ${fs.existsSync(backendPath)}\n` +
+    `===============================\n`
   );
 
+  logStream = fs.openSync(logPath, "a");
+
+  // Start Express backend
   backendProcess = spawn(
     process.execPath,
     [backendPath],
     {
-      // Isse dotenv src/server/.env find karega
       cwd: backendDir,
 
       env: {
         ...process.env,
 
-        // Electron executable ko Node process ki tarah run karo
+        // Run Electron executable as Node.js
         ELECTRON_RUN_AS_NODE: "1",
+
+        // Allow backend to find packaged dependencies
+        NODE_PATH: app.isPackaged
+          ? path.join(
+              process.resourcesPath,
+              "app.asar",
+              "node_modules"
+            )
+          : path.join(
+              __dirname,
+              "../node_modules"
+            ),
       },
 
-      // Backend logs terminal mein show honge
-      stdio: "inherit",
+      stdio: [
+        "ignore",
+        logStream,
+        logStream
+      ],
     }
   );
 
   backendProcess.on("error", (error) => {
-    console.error("Failed to start backend:", error);
+    fs.appendFileSync(
+      logPath,
+      `\nBACKEND START ERROR:\n${error.stack}\n`
+    );
   });
 
-  backendProcess.on("exit", (code) => {
-    console.log(`Backend stopped with code: ${code}`);
+  backendProcess.on("exit", (code, signal) => {
+    fs.appendFileSync(
+      logPath,
+      `\nBACKEND EXIT\nCode: ${code}\nSignal: ${signal}\n`
+    );
   });
 }
 
@@ -65,17 +103,30 @@ function createWindow() {
     },
   });
 
-  // React production build
   win.loadFile(
     path.join(__dirname, "../dist/index.html")
   );
 }
 
-app.whenReady().then(() => {
-  // Express backend automatically start
-  startBackend();
+function stopBackend() {
+  if (backendProcess) {
+    backendProcess.kill();
+    backendProcess = null;
+  }
 
-  // Electron window
+  if (logStream !== null) {
+    try {
+      fs.closeSync(logStream);
+    } catch {
+      // Already closed
+    }
+
+    logStream = null;
+  }
+}
+
+app.whenReady().then(() => {
+  startBackend();
   createWindow();
 
   app.on("activate", () => {
@@ -85,21 +136,14 @@ app.whenReady().then(() => {
   });
 });
 
+app.on("before-quit", () => {
+  stopBackend();
+});
+
 app.on("window-all-closed", () => {
-  // Electron close ho to backend bhi close
-  if (backendProcess) {
-    backendProcess.kill();
-    backendProcess = null;
-  }
+  stopBackend();
 
   if (process.platform !== "darwin") {
     app.quit();
-  }
-});
-
-app.on("before-quit", () => {
-  if (backendProcess) {
-    backendProcess.kill();
-    backendProcess = null;
   }
 });
